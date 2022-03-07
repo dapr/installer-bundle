@@ -123,7 +123,7 @@ jobs:
           OWNER_NAME="${GITHUB_REPOSITORY%%/*}"
           REPO_NAME="${GITHUB_REPOSITORY#*/}"
 
-          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          export GITHUB_TOKEN=${{ secrets.DAPR_BOT_TOKEN }}
 
           echo "Uploading Dapr Installer-Bundle to GitHub Release"
           github-release upload \
