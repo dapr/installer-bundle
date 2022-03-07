@@ -1,0 +1,136 @@
+# ------------------------------------------------------------
+# Copyright 2021 The Dapr Authors
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#     http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ------------------------------------------------------------
+
+
+
+name: dapr_bundle
+
+on:
+  push:
+    branches:
+      - main
+      - release-*
+    tags:
+      - v*
+  pull_request:
+    branches:
+      - main
+      - release-*
+
+
+jobs:
+  build:
+    name: Build ${{ matrix.target_os }}_${{ matrix.target_arch }} bundles
+    runs-on: ubuntu-latest
+    env:
+      ARCHIVE_DIR: archives
+    strategy:
+      matrix:
+        target_os: [linux, windows, darwin]
+        target_arch: [amd64, arm64, arm]
+        include:
+          -  target_os: linux
+          -  target_os: windows
+          -  target_os: darwin
+        exclude:
+          - target_os: windows
+            target_arch: arm
+          - target_os: windows
+            target_arch: arm64
+          - target_os: darwin
+            target_arch: arm
+    steps:
+      - name: Checkout code into current directory
+        uses: actions/checkout@v2
+
+      - name: Installing python version > 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+
+      - name: Display Python version
+        run: python --version
+   
+      - name: Parse release version and set REL_VERSION
+        run: python ./.github/scripts/get_release_version.py
+      
+      - name: Check REL_VERSION
+        if: matrix.target_os == 'linux' && matrix.target_arch == 'amd64'
+        run: |
+          echo RELEASE VERSION: ${{env.REL_VERSION}}
+      
+      - name: Create and Archive bundle
+        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}}
+
+      - name: Create release_version.txt
+        if: matrix.target_arch == 'amd64' && matrix.target_os == 'linux'
+        run: |
+          [ ! -z "${{ env.REL_VERSION }}" ] && echo "${{ env.REL_VERSION }}" > "${{ env.ARCHIVE_DIR }}/release_version.txt"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: bundle_drop
+          path: ${{env.ARCHIVE_DIR}}
+  publish:
+    name: Publish Bundle created
+    needs: build
+    if: startswith(github.ref, 'refs/tags/v')
+    env:
+      ARTIFACT_DIR: ./release
+    runs-on: ubuntu-latest
+    steps:
+      - name: download artifacts
+        uses: actions/download-artifact@master
+        with:
+          name: bundle_drop
+          path: ${{env.ARTIFACT_DIR}}
+      
+      - name: Set Release Version
+        run: |
+          REL_VERSION_FILE="${{ env.ARTIFACT_DIR }}/release_version.txt"
+          REL_VER=`cat ${REL_VERSION_FILE}`
+          echo "REL_VERSION=${REL_VER}" >> $GITHUB_ENV
+          rm -f ${REL_VERSION_FILE}
+
+      - name: generate checksum files
+        run: cd ${ARTIFACT_DIR} && for i in *; do sha256sum -b $i > "$i.sha256"; done && cd -
+
+      - name: lists artifacts
+        run: ls -l ${{ env.ARTIFACT_DIR }}
+
+      - name: publish binaries to github
+        if: startswith(github.ref, 'refs/tags/v')
+        run: |
+          echo "installing github-release-cli..."
+          sudo npm install --silent --no-progress -g github-release-cli@1.3.1
+          # Get the list of files
+          RELEASE_ARTIFACT=(${ARTIFACT_DIR}/*)
+          # Parse repository to get owner and repo names
+
+          OWNER_NAME="${GITHUB_REPOSITORY%%/*}"
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+
+          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+
+          echo "Uploading Dapr Installer-Bundle to GitHub Release"
+          github-release upload \
+            --owner $OWNER_NAME --repo $REPO_NAME \
+            --tag "v${REL_VERSION}" \
+            --name "Dapr Installer-Bundle v${REL_VERSION}" \
+            --prerelease true \
+            ${RELEASE_ARTIFACT[*]}
+
+
