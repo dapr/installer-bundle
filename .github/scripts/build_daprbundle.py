@@ -148,8 +148,6 @@ def downloadDockerImage(image_name, version, out_dir):
     print(f"Downloaded {docker_image} to {downloadPath}")
 
 def downloadDockerImages(dir):
-    if runtime_os == "darwin":
-        return
     image_dir = os.path.join(dir,IMAGE_DIR)
     downloadDockerImage("daprio/dapr",runtime_ver,image_dir)
 
