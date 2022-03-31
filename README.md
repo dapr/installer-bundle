@@ -6,9 +6,9 @@ Dapr Installer Bundle contains CLI, runtime and dashboard packaged together. Thi
 daprbundle
 ├── dapr
 ├── dist
-│   ├── daprd_<runtime_os>_<runtime_arch>.tar.gz(`.zip` for windows)
-│   ├── dashboard_<runtime_os>_<runtime_arch>.tar.gz(`.zip` for windows)
-│   ├── placement_<runtime_os>_<runtime_arch>.tar.gz(`.zip` for windows)
+│   ├── daprd_<runtime_os>_<runtime_arch>.tar.gz (`.zip` for windows)
+│   ├── dashboard_<runtime_os>_<runtime_arch>.tar.gz (`.zip` for windows)
+│   ├── placement_<runtime_os>_<runtime_arch>.tar.gz (`.zip` for windows)
 ├── docker
 │   ├── daprio/dapr-<runtime_ver>.tar.gz
 └── details.json

@@ -115,7 +115,7 @@ def downloadBinary(repo, fileBase, version, out_dir):
 
     print(f"Downloaded {url} to {downloadPath}")
 
-# Downloads all required dapr binaries(`daprd`,`placement`,`dashboard`) in `BIN_DIR` subfolder and dapr cli(`dapr`) in `dir` folder
+# Downloads all required dapr binaries (`daprd`,`placement`,`dashboard`) in `BIN_DIR` subfolder and dapr cli (`dapr`) in `dir` folder
 def downloadBinaries(dir):
     bin_dir = os.path.join(dir,BIN_DIR)
     downloadBinary(GITHUB_DAPR_REPO,DAPRD_FILENAME,runtime_ver,bin_dir)
@@ -127,7 +127,8 @@ def downloadBinaries(dir):
     unpack_archive(cli_filepath,dir)
     os.remove(cli_filepath)
 
-# Returns the fileName of the docker image to be saved. e.g. for image `daprio/dapr:1.7.0`, the fileName would be `dapr-1.7.0.tar.gz` i.e. without owner prefix
+# Returns the fileName of the docker image to be saved.
+# E.g., for image `daprio/dapr:1.7.0`, the fileName would be `daprio-dapr-1.7.0.tar.gz`
 def getFileName(image):
     fileName = image.replace("/","-").replace(":","-") + ".tar.gz"
     return fileName
