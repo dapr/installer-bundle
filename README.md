@@ -1,5 +1,18 @@
 # Dapr Installer Bundle
-Dapr Installer Bundle contains CLI, runtime and dashboard packaged together. This eliminates the need to download binaries as well as docker images when initializing Dapr locally.
+
+## Overview
+Dapr Installer Bundle contains CLI, runtime and dashboard packaged together. This eliminates the need to download binaries as well as docker images when initializing Dapr locally, especially in airgap/offline environment. The bundle structure is fixed and is as follows:
+
+daprbundle
+├── dapr
+├── dist
+│   ├── daprd_<runtime_os>_<runtime_arch>.tar.gz(`.zip` for windows)
+│   ├── dashboard_<runtime_os>_<runtime_arch>.tar.gz(`.zip` for windows)
+│   ├── placement_<runtime_os>_<runtime_arch>.tar.gz(`.zip` for windows)
+├── docker
+│   ├── daprio/dapr-<runtime_ver>.tar.gz
+└── details.json
+
 
 ## Setup
 Each release of Dapr Installer Bundle includes various OSes and architectures. These packages can be manually downloaded and used to initialize dapr locally.
