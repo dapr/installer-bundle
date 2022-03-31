@@ -199,7 +199,7 @@ def deleteIfExists(dir):
         else:
             os.remove(dir)
 
-# Writes runtime_ver, dashboard_ver and cli_ver in `version.json` file
+# Writes details about versions, sub-folders, and images in `details.json`
 def write_details(dir):
     daprImageName = f"{DAPR_IMAGE}:{runtime_ver}"
     daprImageFileName = getFileName(daprImageName)
