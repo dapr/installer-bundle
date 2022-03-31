@@ -120,12 +120,16 @@ def downloadBinaries(dir):
     unpack_archive(cli_filepath,dir)
     os.remove(cli_filepath)
 
+def getFileName(image):
+    imageBase = image.split("/")[-1]
+    fileName = imageBase.replace(":","-") + ".tar.gz"
+    return fileName
 
 def downloadDockerImage(image_name, version, out_dir):
     docker_image=f"{image_name}:{version}"
     if (version == "latest"):
         docker_image =image_name
-    fileName= docker_image.replace("/","-").replace(":","-") + ".tar.gz"
+    fileName = getFileName(docker_image)
     downloadPath = os.path.join(out_dir,fileName)
 
     if not os.path.exists(out_dir):
