@@ -44,6 +44,9 @@ IMAGE_DIR="docker"
 BUNDLE_DIR="daprbundle"
 ARCHIVE_DIR="archive"
 
+DAPR_IMAGE="daprio/dapr"
+
+
 global runtime_os,runtime_arch,runtime_ver,dashboard_ver,cli_ver
 
 # Returns the latest release/tag of given repo(e.g. `dapr`)
@@ -126,8 +129,7 @@ def downloadBinaries(dir):
 
 # Returns the fileName of the docker image to be saved. e.g. for image `daprio/dapr:1.7.0`, the fileName would be `dapr-1.7.0.tar.gz` i.e. without owner prefix
 def getFileName(image):
-    imageBase = image.split("/")[-1]
-    fileName = imageBase.replace(":","-") + ".tar.gz"
+    fileName = image.replace("/","-").replace(":","-") + ".tar.gz"
     return fileName
 
 # Downloads the givern version of docker image and saves it in `out_dir` folder
@@ -160,7 +162,7 @@ def downloadDockerImage(image_name, version, out_dir):
 # Downloads all required docker images and saves it in `IMAGE_DIR` subfolder of `dir`
 def downloadDockerImages(dir):
     image_dir = os.path.join(dir,IMAGE_DIR)
-    downloadDockerImage("daprio/dapr",runtime_ver,image_dir)
+    downloadDockerImage(DAPR_IMAGE,runtime_ver,image_dir)
 
 # Parses command line arguments
 def parseArguments():
@@ -197,14 +199,20 @@ def deleteIfExists(dir):
             os.remove(dir)
 
 # Writes runtime_ver, dashboard_ver and cli_ver in `version.json` file
-def write_version(dir):
-    versions = {
+def write_details(dir):
+    daprImageName = f"{DAPR_IMAGE}:{runtime_ver}"
+    daprImageFileName = getFileName(daprImageName)
+    details = {
         "daprd" : runtime_ver,
         "dashboard": dashboard_ver,
-        "cli": cli_ver
+        "cli": cli_ver,
+        "daprBinarySubDir": BIN_DIR,
+        "dockerImageSubDir": IMAGE_DIR,
+        "daprImageName": daprImageName,
+        "daprImageFileName": daprImageFileName
     }
-    jsonString = json.dumps(versions)
-    filePath = os.path.join(dir,"version.json")
+    jsonString = json.dumps(details)
+    filePath = os.path.join(dir,"details.json")
     with open(filePath,'w') as f:
         f.write(jsonString)
 
@@ -226,7 +234,7 @@ downloadBinaries(out_dir)
 downloadDockerImages(out_dir)
 
 #writing versions
-write_version(out_dir)
+write_details(out_dir)
 
 #Archiving bundle
 make_archive(BUNDLE_DIR,ARCHIVE_DIR,DAPRBUNDLE_FILENAME)
