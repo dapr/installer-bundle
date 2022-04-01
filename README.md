@@ -27,7 +27,7 @@ daprbundle
   }
 ```
 
-> Note: `details.json` file has been set with Read-Only permissions(0444) by default. It is advised to not modify it's contents, which might lead to undefined behavior during Dapr initialization.
+> Note: `details.json` file has been set with Read-Only permissions (0444) by default. It is advised to not modify it's contents, which may lead to undefined behavior during Dapr initialization.
 
 ## Setup
 Each release of Dapr Installer Bundle includes various OSes and architectures. These packages can be manually downloaded and used to initialize dapr locally.
