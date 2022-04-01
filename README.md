@@ -13,6 +13,19 @@ daprbundle
 │   ├── daprio/dapr-<runtime_ver>.tar.gz
 └── details.json
 
+`details.json` file contains the following contents in json format:
+`
+  {
+    "daprd": <runtime_ver>,
+    "dashboard": <dashboard_ver>,
+    "cli": <cli_ver>,
+    "daprBinarySubDir": <binaries_subdirectoryName>,
+    "dockerImageSubDir": <images_subdirectoryName>,
+    "daprImageName": <dapr_imageName>,
+    "daprImageFileName": <dapr_imageFileName>
+  }
+`
+> Note: `details.json` file has been set with Read-Only permissions(0444) by default. It is advised to not modify it's contents, which might lead to undefined behavior during Dapr initialization.
 
 ## Setup
 Each release of Dapr Installer Bundle includes various OSes and architectures. These packages can be manually downloaded and used to initialize dapr locally.

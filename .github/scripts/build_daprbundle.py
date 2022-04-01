@@ -24,6 +24,7 @@ import json
 import os
 import sys
 import shutil
+import stat
 
 
 # GitHub Organization and repo name to download release
@@ -45,6 +46,7 @@ BUNDLE_DIR="daprbundle"
 ARCHIVE_DIR="archive"
 
 DAPR_IMAGE="daprio/dapr"
+detailsFileName="details.json"
 
 
 global runtime_os,runtime_arch,runtime_ver,dashboard_ver,cli_ver
@@ -213,9 +215,11 @@ def write_details(dir):
         "daprImageFileName": daprImageFileName
     }
     jsonString = json.dumps(details)
-    filePath = os.path.join(dir,"details.json")
+    filePath = os.path.join(dir,detailsFileName)
     with open(filePath,'w') as f:
         f.write(jsonString)
+    os.chmod("x", stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+    print(f"File {detailsFileName} is set to Read-Only")
 
 
 #############Main###################
