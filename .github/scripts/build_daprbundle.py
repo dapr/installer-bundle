@@ -218,7 +218,7 @@ def write_details(dir):
     filePath = os.path.join(dir,detailsFileName)
     with open(filePath,'w') as f:
         f.write(jsonString)
-    os.chmod("x", stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+    os.chmod(filePath, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
     print(f"File {detailsFileName} is set to Read-Only")
 
 
