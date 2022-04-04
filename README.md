@@ -1,14 +1,44 @@
 # Dapr Installer Bundle
-Dapr Installer Bundle contains CLI, runtime and dashboard packaged together. This eliminates the need to download binaries as well as docker images when initializing Dapr locally.
+
+## Overview
+Dapr Installer Bundle contains CLI, runtime and dashboard packaged together. This eliminates the need to download binaries as well as docker images when initializing Dapr locally, especially in airgap/offline environment. The bundle structure is fixed and is as follows:
+```
+daprbundle
+├── dapr
+├── dist
+│   ├── daprd_<runtime_os>_<runtime_arch>.tar.gz (`.zip` for windows)
+│   ├── dashboard_<runtime_os>_<runtime_arch>.tar.gz (`.zip` for windows)
+│   ├── placement_<runtime_os>_<runtime_arch>.tar.gz (`.zip` for windows)
+├── docker
+│   ├── daprio/dapr-<runtime_ver>.tar.gz
+└── details.json
+```
+
+`details.json` file contains the following contents in json format:
+```
+  {
+    "daprd": <runtime_ver>,
+    "dashboard": <dashboard_ver>,
+    "cli": <cli_ver>,
+    "daprBinarySubDir": <binaries_subdirectoryName>,
+    "dockerImageSubDir": <images_subdirectoryName>,
+    "daprImageName": <dapr_imageName>,
+    "daprImageFileName": <dapr_imageFileName>
+  }
+```
+
+> Note: `details.json` file has been set with Read-Only permissions (0444) by default. It is advised to not modify it's contents, which may lead to undefined behavior during Dapr initialization.
 
 ## Setup
 Each release of Dapr Installer Bundle includes various OSes and architectures. These packages can be manually downloaded and used to initialize dapr locally.
 
-1. Download the [Dapr Installer Bundle](https://github.com/dapr/installer-bundle/releases)
-2. Unpack it (e.g. daprbundle_linux_amd64.tar.gz, daprbundle_windows_amd64.zip)
-3. To install Dapr CLI for further use, copy `daprbundle/dapr(.exe for windows)` binary to the desired location:
+1.  Download the [Dapr Installer Bundle](https://github.com/dapr/installer-bundle/releases) for the specific release version. For example, daprbundle_linux_amd64.tar.gz, daprbundle_windows_amd64.zip.
+2. Unpack it.
+3. To install Dapr CLI copy the `daprbundle/dapr (dapr.exe for Windows)` binary to the desired location:
    * For Linux/MacOS - `/usr/local/bin`
    * For Windows, create a directory and add this to your System PATH. For example create a directory called `c:\dapr` and add this directory to your path, by editing your system environment variable.
+
+   > Note: If Dapr CLI is not moved to the desired location, you can use local `dapr` CLI binary in the bundle. The steps above is to move it to the usual location and add it to the path.
 
 ### Install Dapr on your local machine (self-hosted)
 
