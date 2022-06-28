@@ -22,6 +22,24 @@ on:
       - release-*
     tags:
       - v*
+  workflow_dispatch:
+    inputs:
+      runtime_ver:
+        description: "Dapr Runtime Version"
+        required: false
+        default: "latest"
+        type: string
+      cli_ver:
+        description: "Dapr CLI Version"
+        required: false
+        default: "latest"
+        type: string      
+      dashboard_ver:
+        description: "Dapr Dashboard Version"
+        required: false
+        default: "latest"
+        type: string
+
   pull_request:
     branches:
       - main
@@ -66,18 +84,19 @@ jobs:
       - name: Parse release version and set REL_VERSION
         run: python ./.github/scripts/get_release_version.py
       
-      - name: Check REL_VERSION
-        if: matrix.target_os == 'linux' && matrix.target_arch == 'amd64'
+      - name: Check env variables
         run: |
           echo RELEASE VERSION: ${{env.REL_VERSION}}
+          echo RUNTIME VERSION: ${{env.RUNTIME_VERSION}}
+          echo GITHUB_EVENT_NAME: ${GITHUB_EVENT_NAME}
       
-      - name: Create and Archive bundle
-        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}}
+      - name: Create and Archive bundle in workflow_dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{inputs.runtime_ver}} --cli_ver=${{inputs.cli_ver}} --dashboard_ver=${{inputs.dashboard_ver}}
 
-      - name: Create release_version.txt
-        if: matrix.target_arch == 'amd64' && matrix.target_os == 'linux'
-        run: |
-          [ ! -z "${{ env.REL_VERSION }}" ] && echo "${{ env.REL_VERSION }}" > "${{ env.ARCHIVE_DIR }}/release_version.txt"
+      - name: Create and Archive bundle without workflow_dispatch
+        if: github.event_name != 'workflow_dispatch'
+        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{env.RUNTIME_VERSION}}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@master
@@ -92,45 +111,55 @@ jobs:
       ARTIFACT_DIR: ./release
     runs-on: ubuntu-latest
     steps:
+
+      - name: Checkout code into current directory
+        uses: actions/checkout@v2
+
+      - name: Parse release version and set REL_VERSION
+        run: python ./.github/scripts/get_release_version.py
+
       - name: download artifacts
         uses: actions/download-artifact@master
         with:
           name: bundle_drop
           path: ${{env.ARTIFACT_DIR}}
-      
-      - name: Set Release Version
-        run: |
-          REL_VERSION_FILE="${{ env.ARTIFACT_DIR }}/release_version.txt"
-          REL_VER=`cat ${REL_VERSION_FILE}`
-          echo "REL_VERSION=${REL_VER}" >> $GITHUB_ENV
-          rm -f ${REL_VERSION_FILE}
 
       - name: generate checksum files
         run: cd ${ARTIFACT_DIR} && for i in *; do sha256sum -b $i > "$i.sha256"; done && cd -
 
       - name: lists artifacts
         run: ls -l ${{ env.ARTIFACT_DIR }}
+      
+      - name: Upload release using ncipollo/release-action
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "${{ env.ARTIFACT_DIR }}/*"
+          token:  ${{ secrets.DAPR_BOT_TOKEN }}
+          tag: "v${{ env.REL_VERSION }}"
+          name: "Dapr Installer-Bundle v${{ env.REL_VERSION }}"
+          prerelease: ${{ env.PRERELEASE }}
+          allowUpdates: true
 
-      - name: publish binaries to github
-        if: startswith(github.ref, 'refs/tags/v')
-        run: |
-          echo "installing github-release-cli..."
-          sudo npm install --silent --no-progress -g github-release-cli@1.3.1
-          # Get the list of files
-          RELEASE_ARTIFACT=(${ARTIFACT_DIR}/*)
-          # Parse repository to get owner and repo names
+      # - name: publish binaries to github
+      #   if: startswith(github.ref, 'refs/tags/v')
+      #   run: |
+      #     echo "installing github-release-cli..."
+      #     sudo npm install --silent --no-progress -g github-release-cli@1.3.1
+      #     # Get the list of files
+      #     RELEASE_ARTIFACT=(${ARTIFACT_DIR}/*)
+      #     # Parse repository to get owner and repo names
 
-          OWNER_NAME="${GITHUB_REPOSITORY%%/*}"
-          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+      #     OWNER_NAME="${GITHUB_REPOSITORY%%/*}"
+      #     REPO_NAME="${GITHUB_REPOSITORY#*/}"
 
-          export GITHUB_TOKEN=${{ secrets.DAPR_BOT_TOKEN }}
+      #     export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
 
-          echo "Uploading Dapr Installer-Bundle to GitHub Release"
-          github-release upload \
-            --owner $OWNER_NAME --repo $REPO_NAME \
-            --tag "v${REL_VERSION}" \
-            --name "Dapr Installer-Bundle v${REL_VERSION}" \
-            --prerelease true \
-            ${RELEASE_ARTIFACT[*]}
+      #     echo "Uploading Dapr Installer-Bundle to GitHub Release"
+      #     github-release upload \
+      #       --owner $OWNER_NAME --repo $REPO_NAME \
+      #       --tag "v${REL_VERSION}" \
+      #       --name "Dapr Installer-Bundle v${REL_VERSION}" \
+      #       --prerelease true \
+      #       ${RELEASE_ARTIFACT[*]}
 
 
