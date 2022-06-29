@@ -56,6 +56,7 @@ global runtime_os,runtime_arch,runtime_ver,dashboard_ver,cli_ver
 
 # Returns latest release/pre-release version of the given repo from GitHub (e.g. `dapr`)
 def getLatestRelease(repo):
+    preRelease = os.getenv("PRERELEASE")
     daprReleaseUrl = "https://api.github.com/repos/" + GITHUB_ORG + "/" + repo + "/releases"
     print(daprReleaseUrl)
     resp = requests.get(daprReleaseUrl)
@@ -66,7 +67,9 @@ def getLatestRelease(repo):
     data = json.loads(resp.text)
     versions = []
     for release in data:
-        if not release["draft"]:
+        if not release["draft"] and not release["prerelease"]:
+            versions.append(release["tag_name"].lstrip("v"))
+        if preRelease == "true" and release["prerelease"]:
             versions.append(release["tag_name"].lstrip("v"))
     if len(versions) == 0:
         print(f"No releases found for {repo}")
