@@ -18,12 +18,14 @@ from fileinput import filename
 from http.client import OK
 import subprocess
 import tarfile
+from tkinter import Variable
 import zipfile
 import requests
 import json
 import os
 import sys
 import shutil
+import semver
 import stat
 
 
@@ -51,20 +53,29 @@ detailsFileName="details.json"
 
 global runtime_os,runtime_arch,runtime_ver,dashboard_ver,cli_ver
 
-# Returns the latest release/tag of given repo(e.g. `dapr`)
+
+# Returns latest release/pre-release version of the given repo from GitHub (e.g. `dapr`)
 def getLatestRelease(repo):
     daprReleaseUrl = "https://api.github.com/repos/" + GITHUB_ORG + "/" + repo + "/releases"
     print(daprReleaseUrl)
-    latest_release = ""
     resp = requests.get(daprReleaseUrl)
     if resp.status_code != requests.codes.ok:
         print(f"Error pulling latest release of {repo}")
         resp.raise_for_status()
         sys.exit(1)
     data = json.loads(resp.text)
-    version = data[0]['tag_name'].lstrip("v")
-    print(version)
-    return version
+    versions = []
+    for release in data:
+        if not release["draft"]:
+            versions.append(release["tag_name"].lstrip("v"))
+    if len(versions) == 0:
+        print(f"No releases found for {repo}")
+        sys.exit(1)
+    latest_release = versions[0]
+    for version in versions:
+        if semver.compare(version,latest_release) > 0:
+            latest_release = version
+    return latest_release
 
 # Returns the complete filename of the archived binary(e.g. `daprd_linux_amd64.tar.gz`)
 def binaryFileName(fileBase):
@@ -186,11 +197,11 @@ def parseArguments():
     cli_ver = str(args["cli_ver"])
     ARCHIVE_DIR = str(args["archive_dir"])
 
-    if runtime_ver == "latest":
+    if runtime_ver == "latest" or runtime_ver == "":
         runtime_ver = getLatestRelease(GITHUB_DAPR_REPO)
-    if dashboard_ver == "latest":
+    if dashboard_ver == "latest" or dashboard_ver == "":
         dashboard_ver = getLatestRelease(GITHUB_DASHBOARD_REPO)
-    if cli_ver == "latest":
+    if cli_ver == "latest" or cli_ver == "":
         cli_ver = getLatestRelease(GITHUB_CLI_REPO)
 
 # Deletes a file if exists
