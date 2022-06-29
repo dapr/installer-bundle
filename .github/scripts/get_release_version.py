@@ -24,6 +24,7 @@ with open(os.getenv("GITHUB_ENV"), "a") as githubEnv:
     if gitRef is None or not gitRef.startswith(tagRefPrefix):
         githubEnv.write("REL_VERSION=edge\n")
         githubEnv.write("RUNTIME_VERSION=latest\n")
+        githubEnv.write("PRERELEASE=true\n")
         print ("This is daily build from {}...".format(gitRef))
         sys.exit(0)
 
