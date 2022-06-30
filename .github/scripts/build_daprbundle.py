@@ -18,7 +18,6 @@ from fileinput import filename
 from http.client import OK
 import subprocess
 import tarfile
-from tkinter import Variable
 import zipfile
 import requests
 import json
@@ -51,7 +50,7 @@ DAPR_IMAGE="daprio/dapr"
 detailsFileName="details.json"
 
 
-global runtime_os,runtime_arch,runtime_ver,dashboard_ver,cli_ver
+global runtime_os,runtime_arch,runtime_ver,dashboard_ver,cli_ver,added_files
 
 
 # Returns latest release/pre-release version of the given repo from GitHub (e.g. `dapr`)
@@ -183,7 +182,7 @@ def downloadDockerImages(dir):
 
 # Parses command line arguments
 def parseArguments():
-    global runtime_os,runtime_arch,runtime_ver,dashboard_ver,cli_ver,ARCHIVE_DIR
+    global runtime_os,runtime_arch,runtime_ver,dashboard_ver,cli_ver,ARCHIVE_DIR,added_files
     all_args = argparse.ArgumentParser()
     all_args.add_argument("--runtime_os",required=True,help="Runtime OS: [windows/linux/darwin]")
     all_args.add_argument("--runtime_arch",required=True,help="Runtime Architecture: [amd64/arm/arm64]")
@@ -191,6 +190,7 @@ def parseArguments():
     all_args.add_argument("--dashboard_ver",default="latest",help="Dapr Dashboard Version: default=latest e.g. 0.9.0")
     all_args.add_argument("--cli_ver",default="latest",help="Dapr CLI Version: default=latest e.g. 1.6.0")
     all_args.add_argument("--archive_dir",default="archive",help="Output Archive directory: default=archive")
+    all_args.add_argument("--added_files",default="",help="Extra files to be included in the archive seaparated by comma")
 
     args = vars(all_args.parse_args())
     runtime_os = str(args['runtime_os'])
@@ -199,6 +199,7 @@ def parseArguments():
     dashboard_ver = str(args["dashboard_ver"])
     cli_ver = str(args["cli_ver"])
     ARCHIVE_DIR = str(args["archive_dir"])
+    added_files = str(args["added_files"])
 
     if runtime_ver == "latest" or runtime_ver == "":
         runtime_ver = getLatestRelease(GITHUB_DAPR_REPO)
@@ -235,6 +236,18 @@ def write_details(dir):
     os.chmod(filePath, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
     print(f"File {detailsFileName} is set to Read-Only")
 
+# Copies files, containing fileNames relative to current directory separated by comma, to `dir`
+def copy_files(dir,files):
+    if files == "":
+        return
+    current_dir = os.getcwd()
+    for file in files.split(","):
+        filePath = os.path.join(current_dir,file)
+        if os.path.exists(filePath):
+            print(f"Copying {filePath} to {dir}")
+            shutil.copy(filePath,dir)
+        else:
+            print(f"File {filePath} does not exist")
 
 #############Main###################
 
@@ -254,6 +267,9 @@ downloadDockerImages(out_dir)
 
 #writing versions
 write_details(out_dir)
+
+#Copying files
+copy_files(out_dir,added_files)
 
 #Archiving bundle
 make_archive(BUNDLE_DIR,ARCHIVE_DIR,DAPRBUNDLE_FILENAME)
