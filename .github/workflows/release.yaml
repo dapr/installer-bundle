@@ -52,6 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ARCHIVE_DIR: archives
+      README_FILE: README.md
     strategy:
       matrix:
         target_os: [linux, windows, darwin]
@@ -92,11 +93,11 @@ jobs:
       
       - name: Create and Archive bundle in workflow_dispatch
         if: github.event_name == 'workflow_dispatch'
-        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{inputs.runtime_ver}} --cli_ver=${{inputs.cli_ver}} --dashboard_ver=${{inputs.dashboard_ver}}
+        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{inputs.runtime_ver}} --cli_ver=${{inputs.cli_ver}} --dashboard_ver=${{inputs.dashboard_ver}} --added_files=${{env.README_FILE}}
 
       - name: Create and Archive bundle without workflow_dispatch
         if: github.event_name != 'workflow_dispatch'
-        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{env.RUNTIME_VERSION}}
+        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{env.RUNTIME_VERSION}} --added_files=${{env.README_FILE}}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@master
@@ -139,27 +140,3 @@ jobs:
           name: "Dapr Installer-Bundle v${{ env.REL_VERSION }}"
           prerelease: ${{ env.PRERELEASE }}
           allowUpdates: true
-
-      # - name: publish binaries to github
-      #   if: startswith(github.ref, 'refs/tags/v')
-      #   run: |
-      #     echo "installing github-release-cli..."
-      #     sudo npm install --silent --no-progress -g github-release-cli@1.3.1
-      #     # Get the list of files
-      #     RELEASE_ARTIFACT=(${ARTIFACT_DIR}/*)
-      #     # Parse repository to get owner and repo names
-
-      #     OWNER_NAME="${GITHUB_REPOSITORY%%/*}"
-      #     REPO_NAME="${GITHUB_REPOSITORY#*/}"
-
-      #     export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-
-      #     echo "Uploading Dapr Installer-Bundle to GitHub Release"
-      #     github-release upload \
-      #       --owner $OWNER_NAME --repo $REPO_NAME \
-      #       --tag "v${REL_VERSION}" \
-      #       --name "Dapr Installer-Bundle v${REL_VERSION}" \
-      #       --prerelease true \
-      #       ${RELEASE_ARTIFACT[*]}
-
-
