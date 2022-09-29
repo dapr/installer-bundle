@@ -37,6 +37,7 @@ GITHUB_CLI_REPO="cli"
 # Dapr binaries filename
 DAPRD_FILENAME="daprd"
 PLACEMENT_FILENAME="placement"
+SENTRY_FILENAME="sentry"
 DASHBOARD_FILENAME="dashboard"
 CLI_FILENAME="dapr"
 DAPRBUNDLE_FILENAME="daprbundle"
@@ -135,6 +136,7 @@ def downloadBinaries(dir):
     bin_dir = os.path.join(dir,BIN_DIR)
     downloadBinary(GITHUB_DAPR_REPO,DAPRD_FILENAME,runtime_ver,bin_dir)
     downloadBinary(GITHUB_DAPR_REPO,PLACEMENT_FILENAME,runtime_ver,bin_dir)
+    downloadBinary(GITHUB_DAPR_REPO,SENTRY_FILENAME,runtime_ver,bin_dir)
     downloadBinary(GITHUB_DASHBOARD_REPO,DASHBOARD_FILENAME,dashboard_ver,bin_dir)
     downloadBinary(GITHUB_CLI_REPO,CLI_FILENAME,cli_ver,dir)
 
