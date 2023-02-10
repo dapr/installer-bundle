@@ -52,7 +52,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ARCHIVE_DIR: archives
-      README_FILE: README.md
+      README_MD_FILE: README.md
+      README_TXT_FILE: README.txt
     strategy:
       matrix:
         target_os: [linux, windows, darwin]
@@ -91,13 +92,18 @@ jobs:
           echo RUNTIME VERSION: ${{env.RUNTIME_VERSION}}
           echo GITHUB_EVENT_NAME: ${GITHUB_EVENT_NAME}
       
+      - name: Create Readme.txt file
+        shell: bash
+        run: |
+          cp ${{env.README_MD_FILE}} ${{env.README_TXT_FILE}}
+      
       - name: Create and Archive bundle in workflow_dispatch
         if: github.event_name == 'workflow_dispatch'
-        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{inputs.runtime_ver}} --cli_ver=${{inputs.cli_ver}} --dashboard_ver=${{inputs.dashboard_ver}} --added_files=${{env.README_FILE}}
+        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{inputs.runtime_ver}} --cli_ver=${{inputs.cli_ver}} --dashboard_ver=${{inputs.dashboard_ver}} --added_files=${{env.README_TXT_FILE}}
 
       - name: Create and Archive bundle without workflow_dispatch
         if: github.event_name != 'workflow_dispatch'
-        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{env.RUNTIME_VERSION}} --added_files=${{env.README_FILE}}
+        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{env.RUNTIME_VERSION}} --added_files=${{env.README_TXT_FILE}}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@master

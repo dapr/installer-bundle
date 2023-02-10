@@ -49,7 +49,7 @@ In self-hosted mode, dapr can be initialized using the CLI  with the placement c
 
 ([Prerequisite](#Prerequisites): Docker is available in the environment - recommended)
 
-Use the init command to initialize Dapr. On init, multiple default configuration files and containers are installed along with the dapr runtime binary. Dapr runtime binary is installed under $HOME/.dapr/bin for Mac, Linux and %USERPROFILE%\.dapr\bin for Windows.
+Use the init command to initialize Dapr. On init, default configuration file and containers are installed along with the dapr runtime binary. Dapr runtime binary is installed under $HOME/.dapr/bin for Mac, Linux and %USERPROFILE%\.dapr\bin for Windows.
 
 Move to the bundle directory and run the following command:
 ``` bash
@@ -76,11 +76,10 @@ Output should look like as follows:
 
 This step creates the following defaults:
 
-1. components folder which is later used during `dapr run` unless the `--components-path` option is provided. For Linux/MacOS, the default components folder path is `$HOME/.dapr/components` and for Windows it is `%USERPROFILE%\.dapr\components`.
-2. component files in the components folder called `pubsub.yaml` and `statestore.yaml`.
-3. default config file `$HOME/.dapr/config.yaml` for Linux/MacOS or for Windows at `%USERPROFILE%\.dapr\config.yaml` to enable tracing on `dapr init` call. Can be overridden with the `--config` flag on `dapr run`.
+1. an empty components folder which is later used during `dapr run` unless the `--components-path` option is provided. For Linux/MacOS, the default components folder path is `$HOME/.dapr/components` and for Windows it is `%USERPROFILE%\.dapr\components`.
+2. default config file `$HOME/.dapr/config.yaml` for Linux/MacOS or for Windows at `%USERPROFILE%\.dapr\config.yaml`. Can be overridden with the `--config` flag on `dapr run`.
 
-> Note: To emulate *online* dapr initialization using `dapr init`, you can also run redis/zipkin containers as follows:
+> Note: To emulate *online* dapr initialization using `dapr init`, you can also run redis/zipkin containers as follows. You would also need to update the default config file to enable tracing and add component files in the components folder to load them on `dapr init` call:
 ```
 1. docker run --name "dapr_zipkin" --restart always -d -p 9411:9411 openzipkin/zipkin
 2. docker run --name "dapr_redis" --restart always -d -p 6379:6379 redislabs/rejson
