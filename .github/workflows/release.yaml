@@ -33,7 +33,7 @@ on:
         description: "Dapr CLI Version"
         required: false
         default: "latest"
-        type: string      
+        type: string
       dashboard_ver:
         description: "Dapr Dashboard Version"
         required: false
@@ -82,21 +82,21 @@ jobs:
 
       - name: Display Python version
         run: python --version
-   
+
       - name: Parse release version and set REL_VERSION
         run: python ./.github/scripts/get_release_version.py
-      
+
       - name: Check env variables
         run: |
           echo RELEASE VERSION: ${{env.REL_VERSION}}
           echo RUNTIME VERSION: ${{env.RUNTIME_VERSION}}
           echo GITHUB_EVENT_NAME: ${GITHUB_EVENT_NAME}
-      
+
       - name: Create Readme.txt file
         shell: bash
         run: |
           cp ${{env.README_MD_FILE}} ${{env.README_TXT_FILE}}
-      
+
       - name: Create and Archive bundle in workflow_dispatch
         if: github.event_name == 'workflow_dispatch'
         run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{inputs.runtime_ver}} --cli_ver=${{inputs.cli_ver}} --dashboard_ver=${{inputs.dashboard_ver}} --added_files=${{env.README_TXT_FILE}}
@@ -106,9 +106,9 @@ jobs:
         run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{env.RUNTIME_VERSION}} --added_files=${{env.README_TXT_FILE}}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@master
-        with:
-          name: bundle_drop
+        uses: actions/upload-artifact@v4
+        with: # Following the migration guide here https://github.com/actions/upload-artifact/blob/main/docs/MIGRATION.md
+          name: bundle_drop_${{ matrix.target_os }}_${{ matrix.target_arch }}
           path: ${{env.ARCHIVE_DIR}}
   publish:
     name: Publish Bundle created
@@ -126,17 +126,18 @@ jobs:
         run: python ./.github/scripts/get_release_version.py
 
       - name: download artifacts
-        uses: actions/download-artifact@master
-        with:
-          name: bundle_drop
+        uses: actions/download-artifact@v4
+        with: # Following the migration guide here https://github.com/actions/upload-artifact/blob/main/docs/MIGRATION.md
+          pattern: bundle_drop_*
           path: ${{env.ARTIFACT_DIR}}
+          merge-multiple: true
 
       - name: generate checksum files
         run: cd ${ARTIFACT_DIR} && for i in *; do sha256sum -b $i > "$i.sha256"; done && cd -
 
       - name: lists artifacts
         run: ls -l ${{ env.ARTIFACT_DIR }}
-      
+
       - name: Upload release using ncipollo/release-action
         uses: ncipollo/release-action@v1
         with:
