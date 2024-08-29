@@ -40,6 +40,7 @@ PLACEMENT_FILENAME="placement"
 SENTRY_FILENAME="sentry"
 DASHBOARD_FILENAME="dashboard"
 CLI_FILENAME="dapr"
+SCHEDULER_FILENAME="scheduler"
 DAPRBUNDLE_FILENAME="daprbundle"
 
 BIN_DIR="dist"
@@ -137,6 +138,7 @@ def downloadBinaries(dir):
     downloadBinary(GITHUB_DAPR_REPO,DAPRD_FILENAME,runtime_ver,bin_dir)
     downloadBinary(GITHUB_DAPR_REPO,PLACEMENT_FILENAME,runtime_ver,bin_dir)
     downloadBinary(GITHUB_DAPR_REPO,SENTRY_FILENAME,runtime_ver,bin_dir)
+    downloadBinary(GITHUB_DAPR_REPO,SCHEDULER_FILENAME,runtime_ver,bin_dir)
     downloadBinary(GITHUB_DASHBOARD_REPO,DASHBOARD_FILENAME,dashboard_ver,bin_dir)
     downloadBinary(GITHUB_CLI_REPO,CLI_FILENAME,cli_ver,dir)
 
@@ -168,7 +170,7 @@ def downloadDockerImage(image_name, version, out_dir):
     if(completed_process.returncode != 0):
         print(f"Error pulling docker image {docker_image}")
         sys.exit(1)
-    
+
     cmd = ["docker", "save", "-o", downloadPath, docker_image]
     completed_process = subprocess.run(cmd,text=True)
     if(completed_process.returncode != 0):
