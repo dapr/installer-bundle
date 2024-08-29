@@ -10,6 +10,7 @@ daprbundle
 │   ├── dashboard_<runtime_os>_<runtime_arch>.tar.gz (`.zip` for windows)
 │   ├── placement_<runtime_os>_<runtime_arch>.tar.gz (`.zip` for windows)
 │   ├── sentry_<runtime_os>_<runtime_arch>.tar.gz (`.zip` for windows)
+│   ├── scheduler_<runtime_os>_<runtime_arch>.tar.gz (`.zip` for windows)
 ├── docker
 │   ├── daprio/dapr-<runtime_ver>.tar.gz
 └── details.json
