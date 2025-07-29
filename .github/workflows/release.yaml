@@ -44,8 +44,7 @@ on:
     branches:
       - main
       - release-*
-
-
+      
 jobs:
   build:
     name: Build ${{ matrix.target_os }}_${{ matrix.target_arch }} bundles
@@ -73,11 +72,11 @@ jobs:
       - name: Checkout code into current directory
         uses: actions/checkout@v2
 
-      - name: Installing python version > 3.7
-        uses: actions/setup-python@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
-          cache: 'pip'
+          python-version: "3.9"
+
       - run: pip install -r requirements.txt
 
       - name: Display Python version
