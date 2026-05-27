@@ -34,11 +34,6 @@ on:
         required: false
         default: "latest"
         type: string
-      dashboard_ver:
-        description: "Dapr Dashboard Version"
-        required: false
-        default: "latest"
-        type: string
 
   pull_request:
     branches:
@@ -98,7 +93,7 @@ jobs:
 
       - name: Create and Archive bundle in workflow_dispatch
         if: github.event_name == 'workflow_dispatch'
-        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{inputs.runtime_ver}} --cli_ver=${{inputs.cli_ver}} --dashboard_ver=${{inputs.dashboard_ver}} --added_files=${{env.README_TXT_FILE}}
+        run: python ./.github/scripts/build_daprbundle.py --runtime_os=${{matrix.target_os}} --runtime_arch=${{matrix.target_arch}} --archive_dir=${{env.ARCHIVE_DIR}} --runtime_ver=${{inputs.runtime_ver}} --cli_ver=${{inputs.cli_ver}} --added_files=${{env.README_TXT_FILE}}
 
       - name: Create and Archive bundle without workflow_dispatch
         if: github.event_name != 'workflow_dispatch'
