@@ -1,7 +1,12 @@
 # Dapr Installer Bundle
 
+[![Latest release](https://img.shields.io/github/v/release/dapr/installer-bundle)](https://github.com/dapr/installer-bundle/releases/latest)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
+The Dapr Installer Bundle packages the Dapr CLI, runtime binaries and container image together so you can initialize Dapr in self-hosted mode on an offline or air-gapped machine. See [Dapr in an air-gapped environment](https://docs.dapr.io/operations/hosting/self-hosted/self-hosted-airgap/) in the Dapr docs for the full guide.
+
 ## Overview
-Dapr Installer Bundle contains CLI and runtime packaged together. This eliminates the need to download binaries as well as docker images when initializing Dapr locally, especially in airgap/offline environment. The bundle structure is fixed and is as follows:
+With the bundle, `dapr init` does not need to download binaries or pull Docker images. The bundle structure is fixed and is as follows:
 ```
 daprbundle
 ├── dapr
@@ -27,28 +32,33 @@ daprbundle
   }
 ```
 
-> Note: `details.json` file has been set with Read-Only permissions (0444) by default. It is advised to not modify it's contents, which may lead to undefined behavior during Dapr initialization.
+> Note: `details.json` file has been set with Read-Only permissions (0444) by default. It is advised to not modify its contents, which may lead to undefined behavior during Dapr initialization.
+
+## Prerequisites
+
+* A full `dapr init --from-dir` loads the bundled `daprio/dapr` image and starts the placement and scheduler containers, so it needs Docker (or Podman, with `--container-runtime podman`) installed and running.
+* A slim init (`dapr init --slim --from-dir`) runs no containers and needs no container runtime.
 
 ## Setup
 Each release of Dapr Installer Bundle includes various OSes and architectures. These packages can be manually downloaded and used to initialize dapr locally.
 
-1.  Download the [Dapr Installer Bundle](https://github.com/dapr/installer-bundle/releases) for the specific release version. For example, daprbundle_linux_amd64.tar.gz, daprbundle_windows_amd64.zip.
+1. Download the [Dapr Installer Bundle](https://github.com/dapr/installer-bundle/releases) for the specific release version, or the [latest release](https://github.com/dapr/installer-bundle/releases/latest). For example, daprbundle_linux_amd64.tar.gz, daprbundle_windows_amd64.zip.
 2. Unpack it.
 3. To install Dapr CLI copy the `daprbundle/dapr (dapr.exe for Windows)` binary to the desired location:
    * For Linux/MacOS - `/usr/local/bin`
    * For Windows, create a directory and add this to your System PATH. For example create a directory called `c:\dapr` and add this directory to your path, by editing your system environment variable.
 
-   > Note: If Dapr CLI is not moved to the desired location, you can use local `dapr` CLI binary in the bundle. The steps above is to move it to the usual location and add it to the path.
+   > Note: If Dapr CLI is not moved to the desired location, you can use local `dapr` CLI binary in the bundle. The steps above move it to the usual location and add it to the path.
 
 ### Install Dapr on your local machine (self-hosted)
 
-In self-hosted mode, dapr can be initialized using the CLI  with the placement container enabled by default(recommended) or without it(slim installation) which also does not require docker to be available in the environment.
+In self-hosted mode, Dapr can be initialized using the CLI with the placement and scheduler containers (recommended), or without any containers (slim installation), which does not require Docker.
 
 #### Initialize Dapr
 
-([Prerequisite](#Prerequisites): Docker is available in the environment - recommended)
+([Prerequisite](#prerequisites): Docker is available in the environment - recommended)
 
-Use the init command to initialize Dapr. On init, default configuration file and containers are installed along with the dapr runtime binary. Dapr runtime binary is installed under $HOME/.dapr/bin for Mac, Linux and %USERPROFILE%\.dapr\bin for Windows.
+Use the init command to initialize Dapr. On init, a default configuration file is created and the placement and scheduler containers are started, along with installing the Dapr runtime binary. Dapr runtime binary is installed under $HOME/.dapr/bin for Mac, Linux and %USERPROFILE%\.dapr\bin for Windows.
 
 Move to the bundle directory and run the following command:
 ``` bash
@@ -59,29 +69,29 @@ dapr init --from-dir .
 > If you are not running the above cmd from the bundle directory, provide the full path to bundle directory as input. e.g. assuming bundle directory path is $HOME/daprbundle, run `dapr init --from-dir $HOME/daprbundle` to have the same behavior.
 
 
-Output should look like as follows:
+Output should look like as follows (shown for a 1.19.0 bundle):
 ```bash
-  Making the jump to hyperspace...
-ℹ️  Installing runtime version latest
-↘  Extracting binaries and setting up components... Loaded image: daprio/dapr:$version
+⌛  Making the jump to hyperspace...
+ℹ️  Installing runtime version 1.19.0
 ✅  Extracting binaries and setting up components...
 ✅  Extracted binaries and completed components set up.
 ℹ️  daprd binary has been installed to $HOME/.dapr/bin.
 ℹ️  dapr_placement container is running.
+ℹ️  dapr_scheduler container is running.
 ℹ️  Use `docker ps` to check running containers.
-✅  Success! Dapr is up and running. To get started, go here: https://aka.ms/dapr-getting-started
+✅  Success! Dapr is up and running. To get started, go here: https://docs.dapr.io/getting-started
 ```
-> Note: To see that Dapr has been installed successfully, from a command prompt run the `docker ps` command and check that the `daprio/dapr:$version` container is up and running.
+> Note: To see that Dapr has been installed successfully, from a command prompt run the `docker ps` command and check that the `dapr_placement` and `dapr_scheduler` containers, running the `daprio/dapr:<runtime_ver>` image, are up.
 
 This step creates the following defaults:
 
-1. an empty components folder which is later used during `dapr run` unless the `--components-path` option is provided. For Linux/MacOS, the default components folder path is `$HOME/.dapr/components` and for Windows it is `%USERPROFILE%\.dapr\components`.
+1. an empty components folder which is later used during `dapr run` unless the `--resources-path` option is provided. For Linux/MacOS, the default components folder path is `$HOME/.dapr/components` and for Windows it is `%USERPROFILE%\.dapr\components`.
 2. default config file `$HOME/.dapr/config.yaml` for Linux/MacOS or for Windows at `%USERPROFILE%\.dapr\config.yaml`. Can be overridden with the `--config` flag on `dapr run`.
 
 > Note: To emulate *online* dapr initialization using `dapr init`, you can also run redis/zipkin containers as follows. You would also need to update the default config file to enable tracing and add component files in the components folder to load them on `dapr init` call:
 ```
 1. docker run --name "dapr_zipkin" --restart always -d -p 9411:9411 openzipkin/zipkin
-2. docker run --name "dapr_redis" --restart always -d -p 6379:6379 redislabs/rejson
+2. docker run --name "dapr_redis" --restart always -d -p 6379:6379 redis:6
 ```
 
 #### Slim Init
@@ -91,17 +101,17 @@ Alternatively to the above, to have the CLI not install any default configuratio
 dapr init --slim --from-dir .
 ```
 
-Output should look like this:
+Output should look like this (shown for a 1.19.0 bundle):
 ```bash
 ⌛  Making the jump to hyperspace...
-ℹ️  Installing runtime version latest
-↙  Extracting binaries and setting up components... 
+ℹ️  Installing runtime version 1.19.0
 ✅  Extracting binaries and setting up components...
 ✅  Extracted binaries and completed components set up.
-ℹ️  daprd binary has been installed to $HOME.dapr/bin.
+ℹ️  daprd binary has been installed to $HOME/.dapr/bin.
 ℹ️  placement binary has been installed to $HOME/.dapr/bin.
-✅  Success! Dapr is up and running. To get started, go here: https://aka.ms/dapr-getting-started
+ℹ️  scheduler binary has been installed to $HOME/.dapr/bin.
+✅  Success! Dapr is up and running. To get started, go here: https://docs.dapr.io/getting-started
 ```
 
->Note: When initializing Dapr with the `--slim` flag only the Dapr runtime binary and the placement service binary are installed. An empty default components folder is created with no default configuration files. During `dapr run` user should use `--components-path` to point to a components directory with custom configurations files or alternatively place these files in the default directory. For Linux/MacOS, the default components directory path is `$HOME/.dapr/components` and for Windows it is `%USERPROFILE%\.dapr\components`.
+>Note: When initializing Dapr with the `--slim` flag, the Dapr runtime binary and the placement and scheduler service binaries are installed. An empty default components folder is created with no default configuration files. During `dapr run` user should use `--resources-path` to point to a components directory with custom configurations files or alternatively place these files in the default directory. For Linux/MacOS, the default components directory path is `$HOME/.dapr/components` and for Windows it is `%USERPROFILE%\.dapr\components`.
 
